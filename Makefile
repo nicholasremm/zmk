@@ -42,3 +42,8 @@ clean_image:
 	$(DOCKER) image rm zmk docker.io/zmkfirmware/zmk-build-arm:stable
 
 clean: clean_firmware clean_image
+
+flash_latest: 
+	cd utils/flasher && cargo run -- $(PWD)/firmware
+
+build_flash_latest: all flash_latest
