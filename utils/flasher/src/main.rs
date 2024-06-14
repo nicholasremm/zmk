@@ -16,12 +16,14 @@ struct KbModule<'a> {
     src_file: &'a DirEntry
 }
 
+const FILE_EXTENSION: &str = "uf2";
+
 fn main() {
     let flasher_args = get_args();
     let mut paths: Vec<_> = fs::read_dir(&flasher_args.firmware_dir)
         .expect("Failed to read firmware dir")
         .map(|r| r.unwrap())
-        .filter(|de| de.path().is_file() && de.path().extension().map(|e| e == "uf2").unwrap_or(false))
+        .filter(|de| de.path().is_file() && de.path().extension().map(|e| e == FILE_EXTENSION).unwrap_or(false))
         .collect::<Vec<DirEntry>>();
 
     paths.sort_by_key(|e| Reverse(e.metadata().and_then(|m| m.created()).unwrap_or(UNIX_EPOCH)));
@@ -56,7 +58,7 @@ fn get_args() -> FlasherArgs {
 }
 
 fn module_file_pattern(module_name: &str) -> Regex {
-    Regex::new(format!(r".*-{}-.*", module_name).as_str()).unwrap()
+    Regex::new(format!(r".*-{}\.{}$", module_name, FILE_EXTENSION).as_str()).unwrap()
 }
 
 fn find_file<'a>(paths: &'a Vec<DirEntry>, file_pattern: &Regex) -> Option<&'a DirEntry> {
