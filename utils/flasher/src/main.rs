@@ -10,9 +10,14 @@ struct FlasherArgs {
     firmware_dir: String
 }
 
+enum FlasherErrors {
+    QuitError,
+    FlashFailed
+}
+
 struct KbModule<'a> {
     name: String,
-    serial_dir: String,
+    serial_dir: Option<String>,
     src_file: &'a DirEntry
 }
 
@@ -31,17 +36,22 @@ fn main() {
     for module in [
         KbModule {
             name: String::from("left"),
-            serial_dir: String::from("/dev/serial/by-id/some-path-to-left"),
+            serial_dir: None,
             src_file: find_file(&paths, &module_file_pattern("left")).expect("Missing left module file")
         },
         KbModule {
             name: String::from("right"),
-            serial_dir: String::from("/dev/serial/by-id/some-path-to-right"),
+            serial_dir: None,
             src_file: find_file(&paths, &module_file_pattern("right")).expect("Missing right module file")
         }
     ] {
-        if !interactive_flash_file(&module) {
-            break;
+        match interactive_flash_file(&module) {
+            Ok(_) => (),
+            Err(FlasherErrors::FlashFailed) => {
+                println!("Flashing failed");
+                break;
+            },
+            _ => break
         }
     };
 }
@@ -72,35 +82,42 @@ fn find_file<'a>(paths: &'a Vec<DirEntry>, file_pattern: &Regex) -> Option<&'a D
              )
 }
 
-fn interactive_flash_file(kb_module: &KbModule) -> bool {
-    let mut input = String::new();
-    let mut success: bool = false;
-    while !success {
-        println!("\nInsert {} module", kb_module.name);
-        let _ = io::stdin().read_line(&mut input);
-        match input.as_str().trim() {
-            "q"  => break,
+fn interactive_flash_file(kb_module: &KbModule) -> Result<(), FlasherErrors> {
+    let mut dest_dir = match &kb_module.serial_dir {
+        Some(dir) => dir.clone(),
+        _ => String::new()
+    };
+    while dest_dir.trim().is_empty() || !Path::new(&dest_dir).exists() {
+        println!("Please specify a destination directory");
+        let _ = io::stdin().read_line(&mut dest_dir);
+        match dest_dir.as_str().trim() {
+            "q" => return Err(FlasherErrors::QuitError),
             _ => ()
-        };
-
-        if !Path::new(&kb_module.serial_dir).exists() {
-            println!("Serial directory does not exist");
-            continue;
-        }
-
-        let file_name = kb_module.src_file.file_name();
-        println!("Flashing file {}", file_name.to_str().unwrap());
-
-        let dest_path = Path::new(&kb_module.serial_dir).join(file_name);
-        match fs::copy(kb_module.src_file.path(), dest_path) {
-            Ok(_) => {
-                println!("Done!");
-                success = true;
-            },
-            _ => println!("Failed to copy file")
         };
     }
 
-    success
+    let max_fails = 3;
+    let mut fail_count = 0;
+    while fail_count < max_fails {
+        let file_name = kb_module.src_file.file_name();
+        println!("Flashing file {} for {} module", file_name.to_str().unwrap(), &kb_module.name);
+
+        let dest_path = Path::new(&dest_dir).join(file_name);
+        match fs::copy(kb_module.src_file.path(), dest_path) {
+            Ok(_) => {
+                println!("Done!");
+                break;
+            },
+            _ => {
+                println!("Failed to copy file");
+                fail_count += 1;
+            }
+        };
+    }
+    
+    match fail_count {
+        x if x == max_fails => Err(FlasherErrors::FlashFailed),
+        _ => Ok(())
+    }
 }
 
