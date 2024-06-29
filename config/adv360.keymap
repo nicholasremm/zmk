@@ -75,8 +75,8 @@
  &kp F1  &kp F2  &kp F3  &kp F4  &kp F5  &kp F6            &tog 1                                                   &mo 3           &kp F7            &kp F8      &kp F9     &kp F10  &kp F11  &kp F12
  &trans  &kp PRINTSCREEN  &kp C_PREV  &kp C_PLAY_PAUSE  &kp C_NEXT  &trans  &none                                                   &tog 4  &trans  &trans  &kp LBKT  &kp RBKT   &kp C_VOLUME_DOWN   &kp C_VOLUME_UP
  &trans  &trans  &trans  &trans  &trans  &trans             &none  &trans  &trans                  &trans  &trans   &none           &trans            &trans &kp LEFT_PARENTHESIS      &kp RIGHT_PARENTHESIS   &trans   &trans
- &trans  &trans  &trans  &trans  &trans  &trans                            &trans                  &kp TILDE                           &trans          &trans      &kp LEFT_BRACE      &kp RIGHT_BRACE   &trans   &trans
- &trans  &trans  &trans  &trans  &trans                    &kp MINUS  &kp PLUS &trans                  &kp GRAVE  &kp UNDERSCORE  &kp EQUAL                             &trans      &trans      &trans   &trans   &trans
+ &trans  &trans  &trans  &trans  &trans  &trans                            &kp PG_UP                  &kp TILDE                           &trans          &trans      &kp LEFT_BRACE      &kp RIGHT_BRACE   &trans   &trans
+ &trans  &trans  &trans  &trans  &trans                    &kp MINUS  &kp PLUS &kp PG_DN                  &kp GRAVE  &kp UNDERSCORE  &kp EQUAL                             &trans      &trans      &trans   &trans   &trans
             >;
         };
 
